@@ -14,9 +14,11 @@ Motor C++17 en streaming, sin dependencias externas, que calcula el
 z-score EWMA del desbalance del flujo de órdenes para acciones de
 litio, sobre ventanas de 500ms.
 
+**Autor:** Pablo Reyes ([@Rxyxs](https://github.com/Rxyxs))
+
 </div>
 
-## Qué es esto
+## Resumen
 
 Las acciones del sector litio (SQM, Albemarle, Pilbara Minerals) están
 expuestas a shocks bruscos de flujo de órdenes ligados a noticias de
@@ -33,6 +35,43 @@ Está construido como un **proyecto C++17 nativo para MSVC, con cero
 dependencias externas** — sin CMake, sin vcpkg, sin librerías de
 terceros. Solo `cl.exe` y la librería estándar.
 
+## Valor de negocio
+
+- **Monitoreo de riesgo específico del sector**: a diferencia de una
+  herramienta genérica de detección de anomalías en ticks, este motor
+  está calibrado para una tesis concreta y volátil — shocks de
+  oferta/demanda en litio y metales para baterías — de modo que un
+  desk con exposición concentrada en nombres tipo SQM/ALB/PLS recibe
+  alertas acotadas al riesgo que realmente carga, sin ruido de
+  sectores no relacionados.
+- **Ángulo de vigilancia de mercado**: un desbalance de flujo de
+  órdenes estadísticamente anómalo y sostenido es también un insumo
+  estándar en flujos de trabajo de vigilancia de mercado (detectar
+  posible filtración de información o manipulación por momentum antes
+  de una noticia pública), no solo una señal de trading.
+- **Baja latencia y sin dependencias por diseño**: un único binario
+  nativo sin un árbol de dependencias en tiempo de ejecución que
+  administrar, procesando volúmenes reales de ticks a ~696.000
+  ticks/segundo en hardware estándar (ver
+  [Resultados](#resultados-corrida-real-no-estimados)) — apto para
+  integrarse directamente en infraestructura de trading o riesgo en
+  C++ ya existente, sin introducir un nuevo toolchain.
+- **Arquitectura en streaming**: memoria constante sin importar el
+  tamaño de la entrada, por lo que puede correr de forma continua
+  contra un feed en vivo o reproducir cintas históricas de varios
+  gigabytes sin necesidad de rediseño.
+
+## Stack tecnológico
+
+| Capa | Elección | Por qué |
+|---|---|---|
+| Lenguaje | C++17 | Rendimiento determinístico, sin pausas de garbage collector, control directo del layout de memoria para una carga en streaming sensible a la latencia |
+| Compilador / toolchain | MSVC (`cl.exe`, Visual Studio 2019 Build Tools) | Toolchain nativo de Windows, sin sistema de build externo requerido |
+| Dependencias | Ninguna (solo librería estándar) | Superficie de cadena de suministro nula, trivial de integrar en un codebase existente |
+| Build | Un único script PowerShell (`build.ps1`) | Sin capa CMake/vcpkg; localiza `vcvars64.bat` e invoca `cl.exe` directamente |
+| Testing | Asserts escritos a mano (`tests/test_engine.cpp`) | Consistente con la política de cero dependencias — sin framework de tests externo |
+| Intercambio de datos | CSV plano | Simple, inspeccionable, y trivialmente reemplazable por la exportación real de un proveedor de datos de mercado que respete el mismo esquema |
+
 ## Arquitectura
 
 ```mermaid
@@ -46,6 +85,27 @@ flowchart LR
     F -->|no| H[fila en results.csv]
     G --> H
 ```
+
+**Responsabilidad de cada componente:**
+
+- `CsvTickReader` — parsea una línea a la vez desde disco mediante un
+  `std::ifstream` con buffer; el archivo nunca se carga completo en
+  memoria, así que el uso de memoria se mantiene constante sin importar
+  el tamaño del archivo. Las filas malformadas se descartan y se
+  cuentan, en vez de abortar el stream.
+- `OrderFlowImbalanceEngine` — mantiene estado independiente por
+  símbolo (`unordered_map<simbolo, estado>`) para que un único stream
+  de ticks con varios tickers de litio se procese en una sola pasada.
+  Las ventanas están ancladas al tiempo de reloj real: si un símbolo
+  queda en silencio, las ventanas vacías intermedias igual se emiten,
+  para que el tracker que sigue vea una serie continua y
+  equiespaciada, en vez de saltarse silenciosamente hacia adelante.
+- `EwmaZScore` — sigue una media y varianza ponderadas
+  exponencialmente por símbolo, con una fase de warm-up fija
+  (estadísticas simples de recorrido) antes de que la actualización
+  exponencial tome el control, y un piso de varianza, para que una
+  ventana de warm-up silenciosa no empuje un z-score posterior a un
+  extremo inestable.
 
 ## Por qué volumen firmado y no una razón acotada
 
@@ -193,4 +253,4 @@ verificación end-to-end de detección de un desbalance inyectado.
 
 ## Licencia
 
-MIT — ver [LICENSE](LICENSE).
+MIT — ver [LICENSE](LICENSE). Copyright (c) 2026 Pablo Reyes.

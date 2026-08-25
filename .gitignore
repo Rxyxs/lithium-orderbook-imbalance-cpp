@@ -22,8 +22,9 @@ data/*.csv
 CMakeFiles/
 CMakeCache.txt
 
-# CLAUDE.md is a personal working-notes file, not part of the published project
+# Internal working notes / tooling config, not part of the published project
 CLAUDE.md
+.claude/
 
 # OS noise
 Thumbs.db

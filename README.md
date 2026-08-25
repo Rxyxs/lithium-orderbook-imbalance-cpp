@@ -13,9 +13,11 @@
 A streaming, zero-dependency C++17 engine that computes the EWMA z-score
 of order-flow imbalance for lithium mining stocks, over 500ms windows.
 
+**Author:** Pablo Reyes ([@Rxyxs](https://github.com/Rxyxs))
+
 </div>
 
-## What this is
+## Overview
 
 Lithium equities (SQM, Albemarle, Pilbara Minerals) are exposed to
 sharp, news-driven order-flow shocks tied to EV demand and battery
@@ -31,6 +33,38 @@ It is built as a **native MSVC C++17 project with zero external
 dependencies** — no CMake, no vcpkg, no third-party libraries. Just
 `cl.exe` and the standard library.
 
+## Business value
+
+- **Sector-specific risk monitoring**: unlike generic tick-anomaly
+  tooling, this engine is tuned to a single, volatile thesis — lithium
+  and battery-metals supply/demand shocks — so a desk with concentrated
+  exposure to SQM/ALB/PLS-type names gets an alert stream scoped to the
+  risk it actually carries, instead of noise from unrelated sectors.
+- **Market surveillance angle**: a statistically abnormal, sustained
+  order-flow imbalance is also a standard input to trade-surveillance
+  workflows (detecting possible information leakage or momentum-driven
+  manipulation ahead of public news), not just a trading signal.
+- **Low-latency, dependency-free by design**: a single native binary
+  with no runtime dependency graph to manage, processing real tick
+  volumes at ~696,000 ticks/second on commodity hardware (see
+  [Results](#results-real-run-not-estimated)) — suited to being
+  embedded directly into existing C++ trading or risk infrastructure
+  without introducing a new toolchain.
+- **Streaming architecture**: constant memory regardless of input size
+  means it can run continuously against a live feed or replay
+  multi-gigabyte historical tapes without a re-architecture.
+
+## Tech stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Language | C++17 | Deterministic performance, no GC pauses, direct control over memory layout for a latency-sensitive streaming workload |
+| Compiler / toolchain | MSVC (`cl.exe`, Visual Studio 2019 Build Tools) | Native Windows toolchain, no external build system required |
+| Dependencies | None (standard library only) | Zero supply-chain surface, trivial to embed in an existing codebase |
+| Build | Single PowerShell script (`build.ps1`) | No CMake/vcpkg layer; locates `vcvars64.bat` and invokes `cl.exe` directly |
+| Testing | Hand-rolled assertions (`tests/test_engine.cpp`) | Consistent with the zero-dependency policy — no external test framework |
+| Data interchange | Plain CSV | Simple, inspectable, and trivially swappable for a real market-data vendor export matching the same schema |
+
 ## Architecture
 
 ```mermaid
@@ -44,6 +78,24 @@ flowchart LR
     F -->|no| H[results.csv row]
     G --> H
 ```
+
+**Component responsibilities:**
+
+- `CsvTickReader` — parses one line at a time from disk via a buffered
+  `std::ifstream`; the file is never loaded into memory as a whole, so
+  memory use stays constant regardless of file size. Malformed rows are
+  skipped and counted rather than aborting the stream.
+- `OrderFlowImbalanceEngine` — maintains independent state per symbol
+  (`unordered_map<symbol, state>`) so a single tick stream carrying
+  several lithium tickers is processed in one pass. Windows are
+  anchored to wall-clock time: if a symbol goes quiet, the intervening
+  empty windows are still emitted so the downstream tracker sees a
+  continuous, evenly-spaced series rather than being silently skipped
+  ahead.
+- `EwmaZScore` — tracks an exponentially-weighted mean and variance per
+  symbol, with a fixed warm-up phase (plain running statistics) before
+  the exponential update takes over, and a variance floor, so a quiet
+  warm-up window can't send a later z-score to an unstable extreme.
 
 ## Why signed volume, not a bounded ratio
 
@@ -180,4 +232,4 @@ isolation, and an end-to-end injected-imbalance detection check.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Pablo Reyes.
