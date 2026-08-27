@@ -30,7 +30,7 @@ if (-not (Get-Command cl -ErrorAction SilentlyContinue)) {
 
 New-Item -ItemType Directory -Force -Path bin | Out-Null
 
-$commonFlags = @("/std:c++17", "/EHsc", "/O2", "/W4", "/nologo", "/I", "include")
+$commonFlags = @("/std:c++20", "/EHsc", "/O2", "/W4", "/nologo", "/I", "include")
 
 Write-Host "Compilando loi_engine.exe..."
 & cl @commonFlags src\main.cpp /Fe:bin\loi_engine.exe /Fo:bin\ | Out-Host

@@ -2,6 +2,17 @@
 
 // Exponentially-weighted moving average / variance z-score tracker.
 //
+// Retained as the reference/legacy Gaussian tracker: OrderFlowImbalance-
+// Engine's live path uses RobustZScore (robust_zscore.hpp, MAD-based)
+// instead, because a Gaussian mean/variance estimator on fat-tailed
+// signed-volume data produces more false alarms than its nominal
+// z-alert threshold implies (see README.md, "Why MAD + Student-t, not a
+// Gaussian EWMA"). This class stays in the codebase, compiled and
+// tested, specifically so that difference can be measured directly --
+// see ewma_vs_robust_alert_comparison in tests/test_engine.cpp, which
+// runs both trackers over the same synthetic fat-tailed series and
+// asserts the robust one raises fewer false alerts.
+//
 // A naive EWMA z-score divides by the variance estimate from the very
 // first sample, which is either zero or based on a single noisy point.
 // A sibling project (market-tick-anomaly-engine-cpp) hit this in

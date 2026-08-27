@@ -1,15 +1,26 @@
 // lithium-orderbook-imbalance-cpp
 //
-// Streaming order-flow-imbalance (OFI) EWMA z-score engine for lithium
-// stocks (SQM, ALB, PLS, MIN, ...). Reads a tick-by-tick CSV file one
-// line at a time (constant memory regardless of file size), aggregates
-// buy/sell volume into 500ms windows per symbol, and scores each
-// window's imbalance against an exponentially-weighted mean/variance to
-// flag statistically abnormal order flow in real time.
+// Streaming order-flow-imbalance (OFI) engine for lithium stocks (SQM,
+// ALB, PLS, MIN, ...). Reads a tick-by-tick CSV file one line at a time
+// (constant memory regardless of file size), aggregates buy/sell volume
+// into 500ms windows per symbol, and scores each window's imbalance
+// against a robust median/MAD estimator (RobustZScore) to flag
+// statistically abnormal order flow in real time -- calibrated against
+// a Student-t distribution rather than a Gaussian one, since signed
+// volume imbalance is fat-tailed. See README.md, "Why MAD + Student-t,
+// not a Gaussian EWMA", for the full justification.
 //
 // Usage:
-//   loi_engine.exe <ticks.csv> [--window-ms 500] [--alpha 0.05]
-//                  [--warmup 30] [--z-alert 3.0] [--out results.csv]
+//   loi_engine.exe <ticks.csv> [--window-ms 500] [--mad-window 60]
+//                  [--warmup 30] [--alert-sigma 3.0] [--dof 4.0]
+//                  [--out results.csv]
+//
+// --alert-sigma is a *nominal Gaussian-equivalent* rarity target (e.g.
+// 3.0 means "as rare as a 3-sigma Gaussian event"), not compared to the
+// robust statistic directly: it is converted at startup into the
+// Student-t(--dof) critical value with the same two-sided tail
+// probability, and *that* larger, heavy-tail-aware value is what each
+// window's |robust_t_stat| is actually compared against.
 
 #include <algorithm>
 #include <chrono>
@@ -23,6 +34,7 @@
 
 #include "csv_tick_reader.hpp"
 #include "order_flow_imbalance.hpp"
+#include "robust_stats.hpp"
 #include "tick.hpp"
 
 namespace {
@@ -31,9 +43,10 @@ struct Args {
     std::string input_path;
     std::string output_path = "results.csv";
     std::int64_t window_ms = 500;
-    double alpha = 0.05;
+    std::size_t mad_window = 60;
     std::size_t warmup = 30;
-    double z_alert = 3.0;
+    double alert_sigma = 3.0;
+    double dof = 4.0;
 };
 
 bool parse_args(int argc, char** argv, Args& args) {
@@ -48,9 +61,10 @@ bool parse_args(int argc, char** argv, Args& args) {
         };
 
         if (flag == "--window-ms") args.window_ms = std::stoll(next_value());
-        else if (flag == "--alpha") args.alpha = std::stod(next_value());
+        else if (flag == "--mad-window") args.mad_window = static_cast<std::size_t>(std::stoul(next_value()));
         else if (flag == "--warmup") args.warmup = static_cast<std::size_t>(std::stoul(next_value()));
-        else if (flag == "--z-alert") args.z_alert = std::stod(next_value());
+        else if (flag == "--alert-sigma") args.alert_sigma = std::stod(next_value());
+        else if (flag == "--dof") args.dof = std::stod(next_value());
         else if (flag == "--out") args.output_path = next_value();
         else throw std::runtime_error("unknown flag: " + flag);
     }
@@ -58,8 +72,8 @@ bool parse_args(int argc, char** argv, Args& args) {
 }
 
 void print_usage(const char* program_name) {
-    std::cerr << "Uso: " << program_name << " <ticks.csv> [--window-ms 500] [--alpha 0.05]"
-              << " [--warmup 30] [--z-alert 3.0] [--out results.csv]\n";
+    std::cerr << "Uso: " << program_name << " <ticks.csv> [--window-ms 500] [--mad-window 60]"
+              << " [--warmup 30] [--alert-sigma 3.0] [--dof 4.0] [--out results.csv]\n";
 }
 
 } // namespace
@@ -77,40 +91,49 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Convert the nominal Gaussian-equivalent rarity target into the
+    // Student-t(dof) critical value with the same two-sided tail
+    // probability -- this is the actual number each window's
+    // |robust_t_stat| is compared against, and it is computed once
+    // (not per window: it doesn't depend on the data, only on the
+    // chosen alert-sigma/dof).
+    const double target_alpha = loi::gaussian_two_sided_pvalue(args.alert_sigma);
+    const double t_critical = loi::student_t_critical_value(target_alpha, args.dof);
+
     std::ofstream out(args.output_path);
     if (!out.is_open()) {
         std::cerr << "No se pudo abrir el archivo de salida: " << args.output_path << "\n";
         return 1;
     }
     out << "window_start_ms,symbol,buy_volume,sell_volume,net_imbalance,imbalance_ratio,"
-           "trade_count,z_score,alert\n";
+           "trade_count,robust_t_stat,alert\n";
 
     std::size_t windows_emitted = 0;
     std::size_t alerts_raised = 0;
 
     const auto write_result = [&](const loi::WindowResult& r) {
-        const bool alert = r.z_score.has_value() && std::abs(*r.z_score) >= args.z_alert;
+        const bool alert = r.robust_t_stat.has_value() && std::abs(*r.robust_t_stat) >= t_critical;
         if (alert) ++alerts_raised;
         ++windows_emitted;
 
         out << r.window_start_ms << ',' << r.symbol << ',' << r.buy_volume << ','
             << r.sell_volume << ',' << r.net_imbalance << ',' << r.imbalance_ratio << ','
             << r.trade_count << ',';
-        if (r.z_score.has_value()) {
-            out << *r.z_score;
+        if (r.robust_t_stat.has_value()) {
+            out << *r.robust_t_stat;
         }
         out << ',' << (alert ? "1" : "0") << '\n';
 
         if (alert) {
             std::cout << "[ALERTA] " << r.symbol << " t=" << r.window_start_ms
                       << "ms net_imbalance=" << r.net_imbalance
-                      << " ratio=" << r.imbalance_ratio << " z=" << *r.z_score << "\n";
+                      << " ratio=" << r.imbalance_ratio << " t_stat=" << *r.robust_t_stat << "\n";
         }
     };
 
     try {
         loi::CsvTickReader reader(args.input_path);
-        loi::OrderFlowImbalanceEngine engine(args.window_ms, args.alpha, args.warmup);
+        loi::OrderFlowImbalanceEngine engine(args.window_ms, args.mad_window, args.warmup);
 
         const auto start_time = std::chrono::steady_clock::now();
         std::size_t ticks_processed = 0;
@@ -135,7 +158,9 @@ int main(int argc, char** argv) {
                    << "Lineas malformadas : " << reader.malformed_lines() << "\n"
                    << "Ventanas emitidas  : " << windows_emitted << " (" << args.window_ms
                    << "ms c/u)\n"
-                   << "Alertas (|z|>=" << args.z_alert << ")  : " << alerts_raised << "\n"
+                   << "Umbral efectivo    : alert-sigma=" << args.alert_sigma << " (Gaussiano) -> dof="
+                   << args.dof << " Student-t -> |t|>=" << t_critical << "\n"
+                   << "Alertas (|robust_t_stat|>=" << t_critical << ")  : " << alerts_raised << "\n"
                    << "Tiempo de procesamiento: " << elapsed_ms << " ms ("
                    << (ticks_processed / std::max(elapsed_ms, 1.0) * 1000.0) << " ticks/s)\n"
                    << "Resultados escritos en: " << args.output_path << "\n";
