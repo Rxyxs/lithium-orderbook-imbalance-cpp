@@ -369,3 +369,7 @@ runs anymore.
 ## License
 
 MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Pablo Reyes.
+
+## Author
+
+**Pablo Reyes** — [github.com/Rxyxs](https://github.com/Rxyxs)

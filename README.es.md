@@ -403,3 +403,7 @@ significativa en vez de testear un tracker que ya nadie corre.
 ## Licencia
 
 MIT — ver [LICENSE](LICENSE). Copyright (c) 2026 Pablo Reyes.
+
+## Autor
+
+**Pablo Reyes** — [github.com/Rxyxs](https://github.com/Rxyxs)
