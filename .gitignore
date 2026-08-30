@@ -23,6 +23,8 @@ CMakeFiles/
 CMakeCache.txt
 
 # Internal working notes / tooling config, not part of the published project
+CLAUDE.md
+.claude/
 
 # OS noise
 Thumbs.db

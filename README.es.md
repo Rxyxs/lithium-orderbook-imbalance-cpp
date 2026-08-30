@@ -67,6 +67,16 @@ terceros. Solo `cl.exe` y la librería estándar.
   contra un feed en vivo o reproducir cintas históricas de varios
   gigabytes sin necesidad de rediseño.
 
+## Impacto de Negocio e Indicadores Clave (KPIs)
+
+| Métrica | Resultado | Qué significa |
+|---|---|---|
+| Reducción de falsas alarmas, MAD+Student-t vs. EWMA Gaussiano | 10 vs. 296 alertas (~30x) | Mismo dataset de 2 horas y 871K ticks -- estimador robusto, no un ajuste de sensibilidad |
+| Falsos positivos fuera de la ventana del shock inyectado | **0** en 43.200 ventanas | Las 10 alertas caen todas dentro de la ventana real de 5 segundos del shock |
+| Throughput | ~651.900 ticks/s | Costo real y medido del estimador robusto: ~6% más lento que el EWMA Gaussiano (~696.000 ticks/s), un trade-off honesto, no escondido |
+| Margen de detección del shock | Estadístico pico 47,37, 7,2x el umbral de alerta | Un margen de seguridad absoluto materialmente mayor que la versión Gaussiana anterior |
+| Robustez a colas pesadas sintéticas (test unitario) | 37 alertas EWMA Gaussiano vs. 1 alerta robusta | Mismo efecto reproducido sobre ruido puro de colas pesadas, sin ningún shock inyectado |
+
 ## Stack tecnológico
 
 | Capa | Elección | Por qué |
