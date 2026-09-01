@@ -191,6 +191,63 @@ void test_order_flow_engine_tracks_symbols_independently() {
     check(results[0].symbol == "SQM", "finalized window belongs to SQM only");
 }
 
+void test_order_flow_engine_flush_finalizes_in_progress_window() {
+    // flush() is what src/main.cpp calls once after the input stream is
+    // exhausted, to finalize whatever window each symbol was still
+    // accumulating -- otherwise the last (possibly partial) window is
+    // silently dropped instead of scored. Never exercised anywhere else
+    // in this suite.
+    loi::OrderFlowImbalanceEngine engine(500, 10, 2);
+
+    loi::Tick sqm{100, "SQM", 52.0, 10.0, loi::Side::Buy};
+    loi::Tick alb{150, "ALB", 118.0, 4.0, loi::Side::Sell};
+
+    auto r1 = engine.on_tick(sqm);
+    auto r2 = engine.on_tick(alb);
+    check(r1.empty() && r2.empty(), "no window finalized on-tick before flush; both still in-progress");
+
+    auto flushed = engine.flush();
+    check(flushed.size() == 2, "flush() finalizes the one in-progress window for every symbol seen");
+
+    bool saw_sqm = false;
+    bool saw_alb = false;
+    for (const loi::WindowResult& w : flushed) {
+        if (w.symbol == "SQM") {
+            saw_sqm = true;
+            check_near(w.buy_volume, 10.0, 1e-9, "flushed SQM window keeps its accumulated buy_volume");
+            check(w.window_start_ms == 0, "flushed SQM window starts at t=0");
+        } else if (w.symbol == "ALB") {
+            saw_alb = true;
+            check_near(w.sell_volume, 4.0, 1e-9, "flushed ALB window keeps its accumulated sell_volume");
+        }
+    }
+    check(saw_sqm && saw_alb, "flush() returned exactly one finalized window per symbol");
+
+    // A second flush() with no new ticks must not resurrect an
+    // already-finalized (now empty, zero-volume) window.
+    auto flushed_again = engine.flush();
+    check(flushed_again.empty(), "flush() is idempotent: nothing left to finalize after a prior flush");
+}
+
+void test_order_flow_engine_flush_skips_untouched_symbol() {
+    // A symbol whose current window has already been finalized via a
+    // later tick (and had no new activity since) must not be re-emitted
+    // by flush() -- guards the `trade_count > 0 || buy_volume > 0 ||
+    // sell_volume > 0` skip-condition in OrderFlowImbalanceEngine::flush().
+    loi::OrderFlowImbalanceEngine engine(500, 10, 2);
+
+    loi::Tick t1{100, "SQM", 52.0, 10.0, loi::Side::Buy};
+    loi::Tick t2{600, "SQM", 52.0, 3.0, loi::Side::Buy}; // finalizes [0,500) via on_tick
+
+    engine.on_tick(t1);
+    auto r2 = engine.on_tick(t2);
+    check(r2.size() == 1, "crossing into the next window finalizes [0,500) via on_tick, not flush");
+
+    auto flushed = engine.flush();
+    check(flushed.size() == 1, "flush() only finalizes the still-in-progress window, not the one on_tick already closed");
+    check_near(flushed[0].buy_volume, 3.0, 1e-9, "flushed window is the in-progress [500,1000) one");
+}
+
 void test_order_flow_engine_detects_injected_imbalance() {
     // End-to-end sanity check: a sustained one-sided burst after a quiet
     // balanced warm-up period must produce a strongly positive alerting
@@ -437,6 +494,8 @@ int main() {
     test_order_flow_engine_basic_window();
     test_order_flow_engine_fills_empty_gap_windows();
     test_order_flow_engine_tracks_symbols_independently();
+    test_order_flow_engine_flush_finalizes_in_progress_window();
+    test_order_flow_engine_flush_skips_untouched_symbol();
     test_order_flow_engine_detects_injected_imbalance();
     test_median_inplace_odd_and_even_counts();
     test_mad_inplace_hand_computed();

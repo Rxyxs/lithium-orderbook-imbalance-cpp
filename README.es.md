@@ -8,7 +8,7 @@
 ![MSVC](https://img.shields.io/badge/compiler-MSVC-5C2D91)
 ![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Tests](https://img.shields.io/badge/tests-85%2F85_passing-success)
+![Tests](https://img.shields.io/badge/tests-95%2F95_passing-success)
 
 Motor C++20 en streaming, sin dependencias externas, que puntúa el
 desbalance del flujo de órdenes para acciones de litio, sobre ventanas
@@ -371,13 +371,13 @@ include/
   order_flow_imbalance.hpp    Agregación por símbolo en ventanas de 500ms
 src/main.cpp                 Punto de entrada de la CLI
 tools/generate_sample_data.cpp  Generador de datos de ejemplo sintéticos
-tests/test_engine.cpp        85 asserts escritos a mano (sin framework de tests)
+tests/test_engine.cpp        95 asserts escritos a mano (sin framework de tests)
 data/                        Dataset de ejemplo + salida de ejemplo (ignorado por git salvo una muestra pequeña)
 ```
 
 ## Tests
 
-85 asserts escritos a mano (sin framework de tests externo, consistente
+95 asserts escritos a mano (sin framework de tests externo, consistente
 con la política de cero dependencias), que cubren el parsing de CSV
 (incluyendo filas malformadas), la correctitud de mediana/MAD
 (incluyendo resistencia a un único outlier extremo), la maquinaria de

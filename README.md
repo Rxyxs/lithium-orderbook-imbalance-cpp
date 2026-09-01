@@ -8,7 +8,7 @@
 ![MSVC](https://img.shields.io/badge/compiler-MSVC-5C2D91)
 ![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Tests](https://img.shields.io/badge/tests-85%2F85_passing-success)
+![Tests](https://img.shields.io/badge/tests-95%2F95_passing-success)
 
 A streaming, zero-dependency C++20 engine that scores order-flow
 imbalance for lithium mining stocks, over 500ms windows, against a
@@ -339,13 +339,13 @@ include/
   order_flow_imbalance.hpp    Per-symbol 500ms window aggregation
 src/main.cpp                 CLI entry point
 tools/generate_sample_data.cpp  Synthetic sample tick-tape generator
-tests/test_engine.cpp        85 hand-rolled assertions (no test framework)
+tests/test_engine.cpp        95 hand-rolled assertions (no test framework)
 data/                        Sample dataset + example output (gitignored except a small sample)
 ```
 
 ## Tests
 
-85 hand-rolled assertions (no external test framework, consistent with
+95 hand-rolled assertions (no external test framework, consistent with
 the zero-dependency policy), covering CSV parsing (including malformed
 rows), median/MAD correctness (including resistance to a single extreme
 outlier), the Student-t critical-value machinery (checked against
