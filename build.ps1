@@ -9,7 +9,8 @@
 
 param(
     [switch]$RunTests,
-    [switch]$GenData
+    [switch]$GenData,
+    [switch]$MakeFigures
 )
 
 $ErrorActionPreference = "Stop"
@@ -44,6 +45,10 @@ Write-Host "Compilando test_engine.exe..."
 & cl @commonFlags tests\test_engine.cpp /Fe:bin\test_engine.exe /Fo:bin\ | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Fallo la compilacion de test_engine.exe" }
 
+Write-Host "Compilando make_figures.exe..."
+& cl @commonFlags tools\make_figures.cpp /Fe:bin\make_figures.exe /Fo:bin\ | Out-Host
+if ($LASTEXITCODE -ne 0) { throw "Fallo la compilacion de make_figures.exe" }
+
 Write-Host "`nBuild completo. Binarios en .\bin\"
 
 if ($GenData) {
@@ -57,4 +62,16 @@ if ($RunTests) {
     Write-Host "`nEjecutando suite de tests..."
     & .\bin\test_engine.exe
     if ($LASTEXITCODE -ne 0) { throw "Fallaron los tests" }
+}
+
+if ($MakeFigures) {
+    # Necesita data\sample_results.csv, que produce loi_engine.exe. Se regenera
+    # acá para que las figuras del README nunca queden describiendo una corrida
+    # distinta de la que el repositorio publica.
+    Write-Host "`nGenerando resultados y figuras..."
+    New-Item -ItemType Directory -Force -Path docs\figures | Out-Null
+    & .\bin\loi_engine.exe data\lithium_ticks_sample.csv --out data\sample_results.csv | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "Fallo la corrida del motor" }
+    & .\bin\make_figures.exe data\sample_results.csv --outdir docs\figures
+    if ($LASTEXITCODE -ne 0) { throw "Fallo la generacion de figuras" }
 }

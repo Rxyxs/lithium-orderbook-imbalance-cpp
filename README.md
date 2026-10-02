@@ -191,6 +191,15 @@ what `|robust_t_stat|` is actually compared against:
 | 5 | 5.5070 |
 | **4 (this project's default)** | **6.6201** |
 
+![Student-t critical value against assumed degrees of freedom](docs/figures/student_t_critical_values.svg)
+
+The curve is why the two fixes are separable. Holding the alert rate fixed
+at the probability a Gaussian 3-sigma rule accepts, the threshold more than
+doubles once you stop assuming normality — and it keeps climbing as the
+assumed tail gets heavier. Picking dof=4 is a stated assumption about the
+tail, not a tuning knob turned until the alert count looked right; the
+Gaussian limit of 3.00 is the right-hand asymptote of that same curve.
+
 Both fixes matter, and neither is redundant with the other: a robust
 scale estimate on its own still needs a threshold that accounts for how
 heavy the tails actually are, and a heavy-tailed threshold applied to a
@@ -283,6 +292,34 @@ reproduces the same effect on fat-tailed noise with no injected shock at
 all: 37 Gaussian-EWMA alerts vs. 1 robust alert over the same 3,000
 synthetic windows.
 
+![Alerts raised by each detector, split into false alarms and true detections](docs/figures/alert_counts.svg)
+
+**And "~30x fewer alerts" undersells it, because the two detectors do not
+even agree on the shock.** Splitting the 296 Gaussian alerts by whether
+they fall inside the true shock window shows that only **2** of them do:
+the other **294 are false alarms**, and the detector misses **8 of the 10
+shock windows entirely**. The robust detector raises 10 alerts, all 10
+inside the shock, none outside. So the robust estimator is not trading
+sensitivity for fewer false positives — it is better on both axes at once.
+
+The reason the Gaussian version misses most of its own target is the
+mechanism this whole design exists to avoid: an EWMA's mean and variance
+are updated by every sample including the shock's, so a *sustained* burst
+inflates the very baseline it is being compared against. After the first
+window or two, the shock starts looking normal to it. A 60-sample MAD
+window cannot be dragged that way by 10 outliers, which is also why the
+peak statistic is larger in absolute terms (47.37) despite the higher bar.
+
+![Both statistics over the full SQM session](docs/figures/detector_timeline.svg)
+
+The timeline is the same fact as a picture. The blue Gaussian trace
+crosses its own threshold throughout the session on ordinary fat-tailed
+noise, while the red robust trace sits well below its line until the shock,
+then spikes to 47.37 — 7.2x its threshold — and drops back immediately.
+What a monitoring desk cares about is not the peak height but that the red
+line is quiet the rest of the time; that is the difference between an alert
+someone acts on and one they learn to dismiss.
+
 **The honest cost**: throughput drops from ~696,000 to ~651,900 ticks/s
 (~6% slower). Computing an exact median/MAD is `O(n log n)` per window
 (via `std::nth_element`) versus `O(1)` for an EWMA's running mean/
@@ -310,6 +347,7 @@ dependencies).
 
 ```powershell
 .\build.ps1 -GenData -RunTests   # compiles everything, generates sample data, runs tests
+.\build.ps1 -MakeFigures       # runs the engine and redraws the README figures as SVG
 .\bin\loi_engine.exe data\lithium_ticks_sample.csv --alert-sigma 3.0 --dof 4.0 --out results.csv
 ```
 
@@ -339,6 +377,8 @@ include/
   order_flow_imbalance.hpp    Per-symbol 500ms window aggregation
 src/main.cpp                 CLI entry point
 tools/generate_sample_data.cpp  Synthetic sample tick-tape generator
+tools/make_figures.cpp       README figures, emitted as hand-written SVG (no plotting library)
+docs/figures/                Generated SVG figures embedded above
 tests/test_engine.cpp        95 hand-rolled assertions (no test framework)
 data/                        Sample dataset + example output (gitignored except a small sample)
 ```

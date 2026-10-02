@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="500" viewBox="0 0 880 500" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="500" fill="#FFFFFF"/>
+  <line x1="84" y1="430" x2="730" y2="430" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="74" y="434" font-size="11" fill="#6A6A6A" text-anchor="end">0.0</text>
+  <line x1="84" y1="361.6" x2="730" y2="361.6" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="74" y="365.6" font-size="11" fill="#6A6A6A" text-anchor="end">2.1</text>
+  <line x1="84" y1="293.2" x2="730" y2="293.2" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="74" y="297.2" font-size="11" fill="#6A6A6A" text-anchor="end">4.2</text>
+  <line x1="84" y1="224.8" x2="730" y2="224.8" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="74" y="228.8" font-size="11" fill="#6A6A6A" text-anchor="end">6.3</text>
+  <line x1="84" y1="156.4" x2="730" y2="156.4" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="74" y="160.4" font-size="11" fill="#6A6A6A" text-anchor="end">8.4</text>
+  <line x1="84" y1="88" x2="730" y2="88" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="74" y="92" font-size="11" fill="#6A6A6A" text-anchor="end">10.5</text>
+  <polyline fill="none" stroke="#B5553D" stroke-width="2.2" stroke-opacity="1" points="84,129.73 101.46,214.37 118.92,250.63 136.38,270.27 153.84,282.45 171.3,290.7 188.76,296.64 206.22,301.12 223.68,304.6 241.14,307.39 258.59,309.68 276.05,311.58 293.51,313.19 310.97,314.56 328.43,315.76 345.89,316.8 363.35,317.72 380.81,318.54 398.27,319.27 415.73,319.92 433.19,320.52 450.65,321.06 468.11,321.55 485.57,322 503.03,322.41 520.49,322.8 537.95,323.15 555.41,323.48 572.86,323.79 590.32,324.07 607.78,324.34 625.24,324.59 642.7,324.82 660.16,325.04 677.62,325.25 695.08,325.45 712.54,325.64 730,325.81 "/>
+  <line x1="84" y1="332.29" x2="730" y2="332.29" stroke="#6E8CA0" stroke-width="1.6" stroke-dasharray="6,4"/>
+  <text x="738" y="336.29" font-size="11" fill="#6E8CA0" text-anchor="start">Gaussian limit 3.00</text>
+  <circle cx="101.46" cy="214.37" r="6" fill="#B5553D" fill-opacity="1"/>
+  <text x="113.46" y="206.37" font-size="12" fill="#B5553D" text-anchor="start" font-weight="600">dof 4 (this project): 6.6202</text>
+  <line x1="84" y1="430" x2="730" y2="430" stroke="#B9B9B9" stroke-width="1.2"/>
+  <line x1="84" y1="88" x2="84" y2="430" stroke="#B9B9B9" stroke-width="1.2"/>
+  <line x1="84" y1="430" x2="84" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="84" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">3</text>
+  <line x1="118.92" y1="430" x2="118.92" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="118.92" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">5</text>
+  <line x1="206.22" y1="430" x2="206.22" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="206.22" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">10</text>
+  <line x1="293.51" y1="430" x2="293.51" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="293.51" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">15</text>
+  <line x1="380.81" y1="430" x2="380.81" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="380.81" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">20</text>
+  <line x1="555.41" y1="430" x2="555.41" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="555.41" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">30</text>
+  <line x1="730" y1="430" x2="730" y2="435" stroke="#B9B9B9" stroke-width="1"/>
+  <text x="730" y="450" font-size="11" fill="#6A6A6A" text-anchor="middle">40</text>
+  <text x="407" y="486" font-size="12" fill="#2B2B2B" text-anchor="middle">Degrees of freedom assumed for the tail</text>
+  <text x="16" y="74" font-size="12" fill="#2B2B2B" text-anchor="start">critical value</text>
+  <text x="84" y="32" font-size="16" fill="#2B2B2B" text-anchor="start" font-weight="600">The same alert rate costs a much higher threshold on a fat tail</text>
+  <text x="84" y="54" font-size="12" fill="#6A6A6A" text-anchor="start">Critical value for a two-sided p of 0.00270 -- the probability a Gaussian 3-sigma rule accepts.</text>
+  <text x="84" y="74" font-size="12" fill="#2B2B2B" text-anchor="start">Assuming dof 4 instead of normality more than doubles the bar a window has to clear.</text>
+</svg>

@@ -208,6 +208,16 @@ forma cerrada). Ese es el valor contra el que efectivamente se compara
 | 5 | 5,5070 |
 | **4 (default de este proyecto)** | **6,6201** |
 
+![Valor crítico de Student-t contra los grados de libertad asumidos](docs/figures/student_t_critical_values.svg)
+
+La curva es la razón de que las dos correcciones sean separables.
+Manteniendo fija la tasa de alertas en la probabilidad que acepta una regla
+gaussiana de 3 sigma, el umbral más que se duplica apenas se deja de asumir
+normalidad — y sigue subiendo a medida que la cola asumida se hace más
+pesada. Elegir dof=4 es un supuesto declarado sobre la cola, no una perilla
+que se giró hasta que el conteo de alertas se viera bien; el límite
+gaussiano de 3,00 es la asíntota derecha de esa misma curva.
+
 Ambas correcciones importan, y ninguna es redundante con la otra: una
 estimación robusta de escala por sí sola igual necesita un umbral que
 tenga en cuenta cuán pesadas son realmente las colas, y un umbral de
@@ -311,6 +321,37 @@ reproduce el mismo efecto sobre ruido de cola pesada sin ningún shock
 inyectado: 37 alertas con el EWMA gaussiano vs. 1 alerta robusta sobre
 las mismas 3.000 ventanas sintéticas.
 
+![Alertas de cada detector, separadas en falsas alarmas y detecciones reales](docs/figures/alert_counts.svg)
+
+**Y "~30x menos alertas" se queda corto, porque los dos detectores ni
+siquiera coinciden sobre el shock.** Separar las 296 alertas gaussianas
+según caigan dentro o fuera de la ventana real del shock muestra que solo
+**2** caen dentro: las otras **294 son falsas alarmas**, y el detector se
+pierde **8 de las 10 ventanas del shock**. El detector robusto levanta 10
+alertas, las 10 dentro del shock, ninguna fuera. O sea que el estimador
+robusto no está canjeando sensibilidad por menos falsos positivos — es
+mejor en los dos ejes a la vez.
+
+La razón de que la versión gaussiana se pierda la mayor parte de su propio
+objetivo es el mecanismo que todo este diseño existe para evitar: la media
+y la varianza de un EWMA se actualizan con cada muestra, incluidas las del
+shock, así que una ráfaga *sostenida* infla la misma línea base contra la
+que se la compara. Después de la primera ventana o dos, el shock empieza a
+parecerle normal. Una ventana MAD de 60 muestras no se deja arrastrar así
+por 10 atípicos, que es también por qué el estadístico pico es más grande
+en términos absolutos (47,37) a pesar de la vara más alta.
+
+![Ambos estadísticos a lo largo de la sesión completa de SQM](docs/figures/detector_timeline.svg)
+
+La línea de tiempo es el mismo hecho hecho imagen. La traza gaussiana azul
+cruza su propio umbral a lo largo de toda la sesión sobre ruido de cola
+pesada corriente, mientras la traza robusta roja se mantiene bien debajo de
+su línea hasta el shock, ahí salta a 47,37 — 7,2x su umbral — y vuelve a
+caer de inmediato. Lo que le importa a una mesa de monitoreo no es la altura
+del pico sino que la línea roja esté callada el resto del tiempo; esa es la
+diferencia entre una alerta sobre la que alguien actúa y una que aprenden a
+ignorar.
+
 **El costo honesto**: el throughput baja de ~696.000 a ~651.900 ticks/s
 (~6% más lento). Calcular una mediana/MAD exacta es `O(n log n)` por
 ventana (vía `std::nth_element`) contra `O(1)` para la actualización de
@@ -341,6 +382,7 @@ C++ (sin ninguna otra dependencia).
 
 ```powershell
 .\build.ps1 -GenData -RunTests   # compila todo, genera datos de ejemplo, corre los tests
+.\build.ps1 -MakeFigures       # corre el motor y redibuja las figuras del README en SVG
 .\bin\loi_engine.exe data\lithium_ticks_sample.csv --alert-sigma 3.0 --dof 4.0 --out results.csv
 ```
 
@@ -371,6 +413,8 @@ include/
   order_flow_imbalance.hpp    Agregación por símbolo en ventanas de 500ms
 src/main.cpp                 Punto de entrada de la CLI
 tools/generate_sample_data.cpp  Generador de datos de ejemplo sintéticos
+tools/make_figures.cpp       Figuras del README, emitidas como SVG escrito a mano (sin librería de gráficos)
+docs/figures/                Figuras SVG generadas, incrustadas más arriba
 tests/test_engine.cpp        95 asserts escritos a mano (sin framework de tests)
 data/                        Dataset de ejemplo + salida de ejemplo (ignorado por git salvo una muestra pequeña)
 ```

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="520" viewBox="0 0 940 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="940" height="520" fill="#FFFFFF"/>
+  <line x1="92" y1="424" x2="470" y2="424" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="84" y="428" font-size="11" fill="#6A6A6A" text-anchor="end">0</text>
+  <line x1="92" y1="344" x2="470" y2="344" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="84" y="348" font-size="11" fill="#6A6A6A" text-anchor="end">96</text>
+  <line x1="92" y1="264" x2="470" y2="264" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="84" y="268" font-size="11" fill="#6A6A6A" text-anchor="end">191</text>
+  <line x1="92" y1="184" x2="470" y2="184" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="84" y="188" font-size="11" fill="#6A6A6A" text-anchor="end">287</text>
+  <line x1="92" y1="104" x2="470" y2="104" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="84" y="108" font-size="11" fill="#6A6A6A" text-anchor="end">382</text>
+  <rect x="127.44" y="177.85" width="118.12" height="246.15" fill="#6E8CA0" stroke="#FFFFFF" stroke-width="1.2"/>
+  <text x="186.5" y="168.85" font-size="15" fill="#6E8CA0" text-anchor="middle" font-weight="600">294</text>
+  <text x="186.5" y="446" font-size="12" fill="#2B2B2B" text-anchor="middle" font-weight="600">Gaussian EWMA</text>
+  <rect x="316.44" y="424" width="118.12" height="1.5" fill="#B5553D" stroke="#FFFFFF" stroke-width="1.2"/>
+  <text x="375.5" y="413.5" font-size="15" fill="#B5553D" text-anchor="middle" font-weight="600">0</text>
+  <text x="375.5" y="446" font-size="12" fill="#2B2B2B" text-anchor="middle" font-weight="600">MAD + Student-t</text>
+  <line x1="92" y1="424" x2="470" y2="424" stroke="#B9B9B9" stroke-width="1.2"/>
+  <line x1="92" y1="104" x2="92" y2="424" stroke="#B9B9B9" stroke-width="1.2"/>
+  <text x="92" y="74" font-size="14" fill="#2B2B2B" text-anchor="start" font-weight="600">False alarms</text>
+  <text x="92" y="92" font-size="11" fill="#6A6A6A" text-anchor="start">windows flagged outside the shock</text>
+  <text x="281" y="470" font-size="11" fill="#8A8A8A" text-anchor="middle">lower is better</text>
+  <line x1="526" y1="424" x2="904" y2="424" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="518" y="428" font-size="11" fill="#6A6A6A" text-anchor="end">0</text>
+  <line x1="526" y1="344" x2="904" y2="344" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="518" y="348" font-size="11" fill="#6A6A6A" text-anchor="end">3</text>
+  <line x1="526" y1="264" x2="904" y2="264" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="518" y="268" font-size="11" fill="#6A6A6A" text-anchor="end">6</text>
+  <line x1="526" y1="184" x2="904" y2="184" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="518" y="188" font-size="11" fill="#6A6A6A" text-anchor="end">10</text>
+  <line x1="526" y1="104" x2="904" y2="104" stroke="#D9D9D9" stroke-width="0.8"/>
+  <text x="518" y="108" font-size="11" fill="#6A6A6A" text-anchor="end">13</text>
+  <rect x="561.44" y="374.77" width="118.12" height="49.23" fill="#6E8CA0" stroke="#FFFFFF" stroke-width="1.2"/>
+  <text x="620.5" y="365.77" font-size="15" fill="#6E8CA0" text-anchor="middle" font-weight="600">2</text>
+  <text x="620.5" y="446" font-size="12" fill="#2B2B2B" text-anchor="middle" font-weight="600">Gaussian EWMA</text>
+  <rect x="750.44" y="177.85" width="118.12" height="246.15" fill="#B5553D" stroke="#FFFFFF" stroke-width="1.2"/>
+  <text x="809.5" y="168.85" font-size="15" fill="#B5553D" text-anchor="middle" font-weight="600">10</text>
+  <text x="809.5" y="446" font-size="12" fill="#2B2B2B" text-anchor="middle" font-weight="600">MAD + Student-t</text>
+  <line x1="526" y1="424" x2="904" y2="424" stroke="#B9B9B9" stroke-width="1.2"/>
+  <line x1="526" y1="104" x2="526" y2="424" stroke="#B9B9B9" stroke-width="1.2"/>
+  <text x="526" y="74" font-size="14" fill="#2B2B2B" text-anchor="start" font-weight="600">Shock windows caught</text>
+  <text x="526" y="92" font-size="11" fill="#6A6A6A" text-anchor="start">out of 10 true shock windows</text>
+  <text x="715" y="470" font-size="11" fill="#8A8A8A" text-anchor="middle">higher is better</text>
+  <text x="92" y="34" font-size="16" fill="#2B2B2B" text-anchor="start" font-weight="600">The robust detector wins on both counts, not just on false alarms</text>
+  <text x="92" y="56" font-size="12" fill="#6A6A6A" text-anchor="start">Same 43,200 windows, same data, both calibrated to the same "as rare as a Gaussian 3-sigma event" target.</text>
+  <text x="92" y="76" font-size="12" fill="#2B2B2B" text-anchor="start">The Gaussian EWMA raises 294 false alarms and still misses most of the shock: its own mean and variance inflate during a sustained burst,</text>
+  <text x="92" y="92" font-size="12" fill="#2B2B2B" text-anchor="start">so after the first windows the shock starts to look normal to it.</text>
+</svg>
