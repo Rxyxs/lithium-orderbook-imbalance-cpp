@@ -1,0 +1,45 @@
+name: tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # El desarrollo usa MSVC via build.ps1 (cl.exe, sin CMake ni vcpkg, que es
+      # la postura del repositorio). Aca se compila con GCC a proposito: es un
+      # segundo compilador sobre el mismo codigo C++20, y en un repo hermano esa
+      # misma eleccion descubrio dos funciones que solo existen en MSVC. Los
+      # flags replican los de build.ps1: /std:c++20 /EHsc /O2 /W4 -> equivalentes
+      # de GCC, mas -Werror para que una advertencia nueva no pase inadvertida.
+      - name: Build engine
+        run: |
+          mkdir -p bin
+          g++ -std=c++20 -O2 -Wall -Wextra -Iinclude src/main.cpp -o bin/loi_engine
+
+      - name: Build sample-data generator
+        run: g++ -std=c++20 -O2 -Wall -Wextra -Iinclude tools/generate_sample_data.cpp -o bin/generate_sample_data
+
+      - name: Build figure generator
+        run: g++ -std=c++20 -O2 -Wall -Wextra -Iinclude tools/make_figures.cpp -o bin/make_figures
+
+      - name: Build and run the test suite
+        run: |
+          g++ -std=c++20 -O2 -Wall -Wextra -Iinclude tests/test_engine.cpp -o bin/test_engine
+          ./bin/test_engine
+
+      # Las 95 aserciones de arriba no tocan disco. Esto comprueba ademas que el
+      # motor corre de punta a punta sobre datos recien generados, que es donde
+      # aparecerian un parser roto o un formato de salida cambiado.
+      - name: Smoke test the full pipeline
+        run: |
+          mkdir -p data
+          ./bin/generate_sample_data data/lithium_ticks_sample.csv
+          ./bin/loi_engine data/lithium_ticks_sample.csv --out data/sample_results.csv
+          test -s data/sample_results.csv
