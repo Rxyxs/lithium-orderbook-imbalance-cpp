@@ -22,8 +22,6 @@ data/*.csv
 CMakeFiles/
 CMakeCache.txt
 
-# Internal working notes / tooling config, not part of the published project
-
 # OS noise
 Thumbs.db
 .DS_Store
