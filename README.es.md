@@ -2,7 +2,7 @@
 
 # lithium-orderbook-imbalance-cpp
 
-**[English](README.md) | [Español](README.es.md)**
+[[English](README.md) ] | [Español ]
 
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus)
 ![MSVC](https://img.shields.io/badge/compiler-MSVC-5C2D91)
