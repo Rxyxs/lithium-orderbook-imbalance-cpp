@@ -30,6 +30,8 @@
   p { margin:0 0 16px; max-width:70ch; }
   code { background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:.86em;
     font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+  table { border-collapse:collapse; margin:14px 0 22px; font-size:.9rem; width:100%; }
+  th, td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; }
   footer { margin-top:60px; padding-top:22px; border-top:1px solid var(--line); font-size:.86rem; color:var(--muted); }
   a { color:var(--accent); }
 </style>
@@ -38,7 +40,7 @@
 <div class="wrap">
 <header>
 <h1>lithium-orderbook-imbalance-cpp</h1>
-<p class="lede"><strong>[English](README.md) | [Español](README.es.md)</strong></p>
+<p class="lede">A zero-dependency C++20 order-flow imbalance engine for lithium stocks, tested on synthetic data and on <strong>real IEX and Binance tapes</strong>, including the session after Chile's 2023 lithium announcement.</p>
 <div class="links">
 <a href="https://github.com/Rxyxs/lithium-orderbook-imbalance-cpp">Code and method</a>
 <a href="https://github.com/Rxyxs/lithium-orderbook-imbalance-cpp#readme">Full README</a>
@@ -49,7 +51,7 @@
 <img src="figures/student_t_critical_values.svg" alt="Student-t critical value against assumed degrees of freedom" loading="lazy">
 <figcaption>The curve is why the two fixes are separable. Holding the alert rate fixed</figcaption>
 </figure>
-<h2>Results (real run, not estimated)</h2>
+<h2>Results on synthetic data</h2>
 <figure>
 <img src="figures/alert_counts.svg" alt="Alerts raised by each detector, split into false alarms and true detections" loading="lazy">
 <figcaption>**And &quot;~30x fewer alerts&quot; undersells it, because the two detectors do not</figcaption>
@@ -58,6 +60,17 @@
 <img src="figures/detector_timeline.svg" alt="Both statistics over the full SQM session" loading="lazy">
 <figcaption>The timeline is the same fact as a picture. The blue Gaussian trace</figcaption>
 </figure>
+<h2>Real data: what changes on real tapes</h2>
+<table>
+<tr><th>Tape</th><th>Empty 500 ms windows</th><th>Robust alerts</th><th>Gaussian alerts</th><th>5 s move after alert vs. any window</th></tr>
+<tr><td>Synthetic (SQM)</td><td>0%</td><td>0.07%</td><td>0.66%</td><td><strong>90.9 vs. 22.8 bps</strong></td></tr>
+<tr><td>BTCUSDT crash, 5 Aug 2024</td><td>3%</td><td>9.3%</td><td>3.1%</td><td>4.5 vs. 5.3 bps</td></tr>
+<tr><td>BTCUSDT calm, 11 Aug 2024</td><td>31%</td><td>24.3%</td><td>2.8%</td><td>1.1 vs. 1.2 bps</td></tr>
+<tr><td>SQM on IEX, 21 Apr 2023 (lithium news)</td><td>92%</td><td>4.2%</td><td>2.6%</td><td>3.4 vs. 3.7 bps</td></tr>
+<tr><td>SQM on IEX, 13 Apr 2023 (ordinary)</td><td>98%</td><td>1.4%</td><td>1.1%</td><td>0.5 vs. 0.5 bps</td></tr>
+</table>
+<p>Both detectors target a 0.27% alert rate. On real tapes the robust detector fires more than the Gaussian one, real order flow has tails far heavier than the Student-t(4) it assumes, and alerts do not anticipate price; only the planted synthetic shock does. The data also exposed a bug: with mostly empty lookbacks the old scale floor turned a 10-share print into t = 10,000,000. It is fixed.</p>
+<p>The lithium news day was a volume event: SQM traded 12x its usual volume on IEX and fell 13% during the session, but buyers took 45% of volume against 46% on an ordinary day. A signed-volume detector cannot see it; a volume detector would.</p>
 <footer>
 Pablo Reyes · <a href="https://github.com/Rxyxs/lithium-orderbook-imbalance-cpp">github.com/Rxyxs/lithium-orderbook-imbalance-cpp</a> · MIT<br><br>
 Every figure on this page is produced by the repository's pipeline. For the full method and its limitations, see the README.

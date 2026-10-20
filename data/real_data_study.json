@@ -1,0 +1,476 @@
+[
+  {
+    "label": "synthetic sample",
+    "symbols": {
+      "ALB": {
+        "windows": 14400,
+        "share_empty_windows": 0.0,
+        "robust_alerts": 0,
+        "robust_alert_rate": 0.0,
+        "gaussian_alerts": 101,
+        "gaussian_alert_rate": 0.007,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": null,
+        "after_gaussian_alert": {
+          "n": 101,
+          "mean_abs_bps": 10.58,
+          "signed_bps_in_imbalance_direction": 0.29,
+          "share_moving_with_imbalance": 0.505
+        },
+        "all_traded_windows": {
+          "n": 14390,
+          "mean_abs_bps": 10.37,
+          "signed_bps_in_imbalance_direction": 0.01,
+          "share_moving_with_imbalance": 0.5
+        }
+      },
+      "PLS": {
+        "windows": 14400,
+        "share_empty_windows": 0.0,
+        "robust_alerts": 0,
+        "robust_alert_rate": 0.0,
+        "gaussian_alerts": 100,
+        "gaussian_alert_rate": 0.007,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": null,
+        "after_gaussian_alert": {
+          "n": 100,
+          "mean_abs_bps": 530.19,
+          "signed_bps_in_imbalance_direction": 109.91,
+          "share_moving_with_imbalance": 0.42
+        },
+        "all_traded_windows": {
+          "n": 14390,
+          "mean_abs_bps": 710.89,
+          "signed_bps_in_imbalance_direction": -0.07,
+          "share_moving_with_imbalance": 0.498
+        }
+      },
+      "SQM": {
+        "windows": 14400,
+        "share_empty_windows": 0.0,
+        "robust_alerts": 10,
+        "robust_alert_rate": 0.0007,
+        "gaussian_alerts": 95,
+        "gaussian_alert_rate": 0.0066,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 10,
+          "mean_abs_bps": 90.89,
+          "signed_bps_in_imbalance_direction": 82.58,
+          "share_moving_with_imbalance": 0.8
+        },
+        "after_gaussian_alert": {
+          "n": 95,
+          "mean_abs_bps": 26.74,
+          "signed_bps_in_imbalance_direction": 3.56,
+          "share_moving_with_imbalance": 0.547
+        },
+        "all_traded_windows": {
+          "n": 14390,
+          "mean_abs_bps": 22.84,
+          "signed_bps_in_imbalance_direction": 0.14,
+          "share_moving_with_imbalance": 0.499
+        }
+      }
+    }
+  },
+  {
+    "label": "btc_20240805",
+    "symbols": {
+      "BTCUSDT": {
+        "windows": 172800,
+        "share_empty_windows": 0.03,
+        "robust_alerts": 16012,
+        "robust_alert_rate": 0.0927,
+        "gaussian_alerts": 5273,
+        "gaussian_alert_rate": 0.0305,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 16009,
+          "mean_abs_bps": 4.48,
+          "signed_bps_in_imbalance_direction": 0.43,
+          "share_moving_with_imbalance": 0.527
+        },
+        "after_gaussian_alert": {
+          "n": 5272,
+          "mean_abs_bps": 5.29,
+          "signed_bps_in_imbalance_direction": 0.43,
+          "share_moving_with_imbalance": 0.51
+        },
+        "all_traded_windows": {
+          "n": 167583,
+          "mean_abs_bps": 5.28,
+          "signed_bps_in_imbalance_direction": 0.32,
+          "share_moving_with_imbalance": 0.515
+        }
+      }
+    }
+  },
+  {
+    "label": "btc_20240811",
+    "symbols": {
+      "BTCUSDT": {
+        "windows": 172800,
+        "share_empty_windows": 0.314,
+        "robust_alerts": 42003,
+        "robust_alert_rate": 0.2431,
+        "gaussian_alerts": 4803,
+        "gaussian_alert_rate": 0.0278,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 41996,
+          "mean_abs_bps": 1.13,
+          "signed_bps_in_imbalance_direction": 0.3,
+          "share_moving_with_imbalance": 0.432
+        },
+        "after_gaussian_alert": {
+          "n": 4802,
+          "mean_abs_bps": 1.25,
+          "signed_bps_in_imbalance_direction": 0.42,
+          "share_moving_with_imbalance": 0.523
+        },
+        "all_traded_windows": {
+          "n": 118470,
+          "mean_abs_bps": 1.2,
+          "signed_bps_in_imbalance_direction": 0.17,
+          "share_moving_with_imbalance": 0.375
+        }
+      }
+    }
+  },
+  {
+    "label": "iex_lithium_20230421",
+    "symbols": {
+      "ALB": {
+        "windows": 56774,
+        "share_empty_windows": 0.924,
+        "robust_alerts": 1731,
+        "robust_alert_rate": 0.0383,
+        "gaussian_alerts": 1349,
+        "gaussian_alert_rate": 0.0238,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 1730,
+          "mean_abs_bps": 1.93,
+          "signed_bps_in_imbalance_direction": -0.23,
+          "share_moving_with_imbalance": 0.263
+        },
+        "after_gaussian_alert": {
+          "n": 1348,
+          "mean_abs_bps": 1.95,
+          "signed_bps_in_imbalance_direction": -0.23,
+          "share_moving_with_imbalance": 0.254
+        },
+        "all_traded_windows": {
+          "n": 4304,
+          "mean_abs_bps": 1.92,
+          "signed_bps_in_imbalance_direction": -0.22,
+          "share_moving_with_imbalance": 0.292
+        }
+      },
+      "LAC": {
+        "windows": 57095,
+        "share_empty_windows": 0.994,
+        "robust_alerts": 150,
+        "robust_alert_rate": 0.0097,
+        "gaussian_alerts": 277,
+        "gaussian_alert_rate": 0.0049,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 148,
+          "mean_abs_bps": 0.92,
+          "signed_bps_in_imbalance_direction": -0.64,
+          "share_moving_with_imbalance": 0.02
+        },
+        "after_gaussian_alert": {
+          "n": 275,
+          "mean_abs_bps": 0.62,
+          "signed_bps_in_imbalance_direction": -0.28,
+          "share_moving_with_imbalance": 0.018
+        },
+        "all_traded_windows": {
+          "n": 365,
+          "mean_abs_bps": 0.57,
+          "signed_bps_in_imbalance_direction": -0.28,
+          "share_moving_with_imbalance": 0.019
+        }
+      },
+      "LTHM": {
+        "windows": 48803,
+        "share_empty_windows": 0.932,
+        "robust_alerts": 1714,
+        "robust_alert_rate": 0.0389,
+        "gaussian_alerts": 1334,
+        "gaussian_alert_rate": 0.0274,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 1714,
+          "mean_abs_bps": 2.03,
+          "signed_bps_in_imbalance_direction": -0.03,
+          "share_moving_with_imbalance": 0.146
+        },
+        "after_gaussian_alert": {
+          "n": 1334,
+          "mean_abs_bps": 2.2,
+          "signed_bps_in_imbalance_direction": 0.03,
+          "share_moving_with_imbalance": 0.154
+        },
+        "all_traded_windows": {
+          "n": 3317,
+          "mean_abs_bps": 2.13,
+          "signed_bps_in_imbalance_direction": -0.17,
+          "share_moving_with_imbalance": 0.152
+        }
+      },
+      "PLL": {
+        "windows": 49894,
+        "share_empty_windows": 0.993,
+        "robust_alerts": 129,
+        "robust_alert_rate": 0.0094,
+        "gaussian_alerts": 272,
+        "gaussian_alert_rate": 0.0055,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 128,
+          "mean_abs_bps": 1.79,
+          "signed_bps_in_imbalance_direction": -0.45,
+          "share_moving_with_imbalance": 0.102
+        },
+        "after_gaussian_alert": {
+          "n": 271,
+          "mean_abs_bps": 1.3,
+          "signed_bps_in_imbalance_direction": -0.22,
+          "share_moving_with_imbalance": 0.066
+        },
+        "all_traded_windows": {
+          "n": 371,
+          "mean_abs_bps": 1.34,
+          "signed_bps_in_imbalance_direction": -0.3,
+          "share_moving_with_imbalance": 0.075
+        }
+      },
+      "SGML": {
+        "windows": 56349,
+        "share_empty_windows": 0.993,
+        "robust_alerts": 142,
+        "robust_alert_rate": 0.0098,
+        "gaussian_alerts": 293,
+        "gaussian_alert_rate": 0.0052,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 142,
+          "mean_abs_bps": 1.18,
+          "signed_bps_in_imbalance_direction": -0.43,
+          "share_moving_with_imbalance": 0.049
+        },
+        "after_gaussian_alert": {
+          "n": 293,
+          "mean_abs_bps": 1.18,
+          "signed_bps_in_imbalance_direction": -0.77,
+          "share_moving_with_imbalance": 0.027
+        },
+        "all_traded_windows": {
+          "n": 365,
+          "mean_abs_bps": 1.15,
+          "signed_bps_in_imbalance_direction": -0.52,
+          "share_moving_with_imbalance": 0.044
+        }
+      },
+      "SQM": {
+        "windows": 57284,
+        "share_empty_windows": 0.919,
+        "robust_alerts": 1973,
+        "robust_alert_rate": 0.0419,
+        "gaussian_alerts": 1458,
+        "gaussian_alert_rate": 0.0255,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 1972,
+          "mean_abs_bps": 3.44,
+          "signed_bps_in_imbalance_direction": -0.16,
+          "share_moving_with_imbalance": 0.277
+        },
+        "after_gaussian_alert": {
+          "n": 1457,
+          "mean_abs_bps": 3.48,
+          "signed_bps_in_imbalance_direction": 0.1,
+          "share_moving_with_imbalance": 0.287
+        },
+        "all_traded_windows": {
+          "n": 4662,
+          "mean_abs_bps": 3.66,
+          "signed_bps_in_imbalance_direction": -0.34,
+          "share_moving_with_imbalance": 0.275
+        }
+      }
+    }
+  },
+  {
+    "label": "iex_lithium_20230413",
+    "symbols": {
+      "ALB": {
+        "windows": 49089,
+        "share_empty_windows": 0.978,
+        "robust_alerts": 500,
+        "robust_alert_rate": 0.016,
+        "gaussian_alerts": 623,
+        "gaussian_alert_rate": 0.0127,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 496,
+          "mean_abs_bps": 0.6,
+          "signed_bps_in_imbalance_direction": -0.08,
+          "share_moving_with_imbalance": 0.137
+        },
+        "after_gaussian_alert": {
+          "n": 623,
+          "mean_abs_bps": 0.57,
+          "signed_bps_in_imbalance_direction": -0.14,
+          "share_moving_with_imbalance": 0.108
+        },
+        "all_traded_windows": {
+          "n": 1094,
+          "mean_abs_bps": 0.7,
+          "signed_bps_in_imbalance_direction": -0.09,
+          "share_moving_with_imbalance": 0.141
+        }
+      },
+      "LAC": {
+        "windows": 46775,
+        "share_empty_windows": 0.993,
+        "robust_alerts": 121,
+        "robust_alert_rate": 0.0092,
+        "gaussian_alerts": 251,
+        "gaussian_alert_rate": 0.0054,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 120,
+          "mean_abs_bps": 0.31,
+          "signed_bps_in_imbalance_direction": -0.06,
+          "share_moving_with_imbalance": 0.042
+        },
+        "after_gaussian_alert": {
+          "n": 250,
+          "mean_abs_bps": 0.45,
+          "signed_bps_in_imbalance_direction": 0.03,
+          "share_moving_with_imbalance": 0.048
+        },
+        "all_traded_windows": {
+          "n": 313,
+          "mean_abs_bps": 0.45,
+          "signed_bps_in_imbalance_direction": 0.02,
+          "share_moving_with_imbalance": 0.045
+        }
+      },
+      "LTHM": {
+        "windows": 46919,
+        "share_empty_windows": 0.982,
+        "robust_alerts": 414,
+        "robust_alert_rate": 0.0177,
+        "gaussian_alerts": 527,
+        "gaussian_alert_rate": 0.0112,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 414,
+          "mean_abs_bps": 0.89,
+          "signed_bps_in_imbalance_direction": -0.06,
+          "share_moving_with_imbalance": 0.089
+        },
+        "after_gaussian_alert": {
+          "n": 526,
+          "mean_abs_bps": 0.95,
+          "signed_bps_in_imbalance_direction": -0.02,
+          "share_moving_with_imbalance": 0.091
+        },
+        "all_traded_windows": {
+          "n": 830,
+          "mean_abs_bps": 1.21,
+          "signed_bps_in_imbalance_direction": -0.14,
+          "share_moving_with_imbalance": 0.094
+        }
+      },
+      "PLL": {
+        "windows": 46717,
+        "share_empty_windows": 0.997,
+        "robust_alerts": 32,
+        "robust_alert_rate": 0.0042,
+        "gaussian_alerts": 141,
+        "gaussian_alert_rate": 0.003,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 30,
+          "mean_abs_bps": 0.09,
+          "signed_bps_in_imbalance_direction": -0.09,
+          "share_moving_with_imbalance": 0.0
+        },
+        "after_gaussian_alert": {
+          "n": 140,
+          "mean_abs_bps": 0.49,
+          "signed_bps_in_imbalance_direction": 0.18,
+          "share_moving_with_imbalance": 0.036
+        },
+        "all_traded_windows": {
+          "n": 157,
+          "mean_abs_bps": 0.44,
+          "signed_bps_in_imbalance_direction": 0.16,
+          "share_moving_with_imbalance": 0.032
+        }
+      },
+      "SGML": {
+        "windows": 49059,
+        "share_empty_windows": 0.996,
+        "robust_alerts": 53,
+        "robust_alert_rate": 0.006,
+        "gaussian_alerts": 163,
+        "gaussian_alert_rate": 0.0033,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 53,
+          "mean_abs_bps": 1.28,
+          "signed_bps_in_imbalance_direction": 0.05,
+          "share_moving_with_imbalance": 0.113
+        },
+        "after_gaussian_alert": {
+          "n": 162,
+          "mean_abs_bps": 0.68,
+          "signed_bps_in_imbalance_direction": -0.15,
+          "share_moving_with_imbalance": 0.062
+        },
+        "all_traded_windows": {
+          "n": 196,
+          "mean_abs_bps": 0.68,
+          "signed_bps_in_imbalance_direction": -0.24,
+          "share_moving_with_imbalance": 0.051
+        }
+      },
+      "SQM": {
+        "windows": 46797,
+        "share_empty_windows": 0.984,
+        "robust_alerts": 340,
+        "robust_alert_rate": 0.0136,
+        "gaussian_alerts": 509,
+        "gaussian_alert_rate": 0.0109,
+        "nominal_rate": 0.0027,
+        "after_robust_alert": {
+          "n": 339,
+          "mean_abs_bps": 0.48,
+          "signed_bps_in_imbalance_direction": 0.04,
+          "share_moving_with_imbalance": 0.094
+        },
+        "after_gaussian_alert": {
+          "n": 508,
+          "mean_abs_bps": 0.4,
+          "signed_bps_in_imbalance_direction": 0.04,
+          "share_moving_with_imbalance": 0.087
+        },
+        "all_traded_windows": {
+          "n": 743,
+          "mean_abs_bps": 0.48,
+          "signed_bps_in_imbalance_direction": -0.01,
+          "share_moving_with_imbalance": 0.093
+        }
+      }
+    }
+  }
+]

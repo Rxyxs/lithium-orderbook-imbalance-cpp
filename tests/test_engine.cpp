@@ -367,13 +367,30 @@ void test_robust_zscore_warmup_then_scores() {
     }
     check(tracker.is_warmed_up(), "tracker reports warmed up after 5 samples");
 
+    // A perfectly flat history has no scale: the window is not scored, instead of
+    // being divided by the min_mad floor (which turned 10 shares into t = 1e7 on IEX).
     auto t_flat = tracker.update(0.0);
-    check(t_flat.has_value(), "statistic returned post warm-up");
-    check_near(*t_flat, 0.0, 1e-6, "statistic of 0 against constant-0 history is 0");
+    check(!t_flat.has_value(), "no statistic against a perfectly flat history");
+
+    // Still flat (the unscored 0 joined it), so the first print is not scored either:
+    // against no variation at all, any size is "infinitely" unusual.
+    check(!tracker.update(10.0).has_value(), "first print after a flat history is not scored");
 
     auto t_spike = tracker.update(10.0);
-    check(t_spike.has_value(), "statistic returned for spike");
-    check(*t_spike > 5.0, "large deviation produces a large robust statistic");
+    check(t_spike.has_value(), "statistic returned once the history has spread");
+    check(*t_spike > 0.0, "a deviation above the median scores positive");
+}
+
+void test_robust_zscore_zero_inflated_history_uses_mean_abs_deviation() {
+    // Real tapes: most windows empty (exactly 0), a few with trades. The MAD is 0,
+    // so the scale falls back to the mean absolute deviation instead of the floor.
+    loi::RobustZScore tracker(/*window_size=*/20, /*warmup_samples=*/20, /*min_mad=*/1e-6);
+    for (int i = 0; i < 20; ++i) tracker.update(i % 5 == 0 ? 10.0 : 0.0);  // 4 of 20 traded
+    auto t = tracker.update(10.0);
+    check(t.has_value(), "zero-inflated history is still scored");
+    // median 0, mean |dev| = 40/20 = 2, scale = 2 * 1.2533 = 2.507, t = 10 / 2.507
+    check_near(*t, 10.0 / (2.0 * 1.2533141373155003), 1e-9, "scale is the mean absolute deviation x sqrt(pi/2)");
+    check(*t < 10.0, "a routine 10-share print is no longer a ten-million-sigma event");
 }
 
 void test_robust_zscore_warmup_clamped_to_window_size() {
@@ -392,7 +409,7 @@ void test_robust_zscore_does_not_leak_the_current_observation() {
     // must not fold itself into its own denominator and understate its
     // own statistic.
     loi::RobustZScore tracker(/*window_size=*/30, /*warmup_samples=*/10, /*min_mad=*/1e-6);
-    for (int i = 0; i < 10; ++i) tracker.update(0.0);
+    for (int i = 0; i < 10; ++i) tracker.update(i % 2 == 0 ? 0.0 : 1.0);
 
     auto t_spike = tracker.update(1000.0);
     check(t_spike.has_value(), "statistic returned for the spike itself");
@@ -409,9 +426,13 @@ void test_robust_zscore_resists_a_single_outlier_that_would_blow_up_ewma() {
     auto t = robust.update(0.5); // warm-up completes on a flat series
     check(!t.has_value(), "still warming up on the 3rd sample");
 
+    // Before: scored against the 1e-6 floor, giving |t| = 10,000 for a 0.01 move.
+    // Now a flat history has no scale and the window is simply not scored.
     auto t2 = robust.update(0.51); // tiny move after a flat warm-up
-    check(t2.has_value(), "statistic available after warm-up");
-    check(std::fabs(*t2) < 100000.0, "small deviation does not explode the robust statistic either");
+    check(!t2.has_value(), "a tiny move after a flat warm-up is not scored against an arbitrary floor");
+    auto t3 = robust.update(0.5);
+    check(t3.has_value(), "scoring resumes once the history has any spread");
+    check(std::fabs(*t3) < 10.0, "and the statistic is on a sane scale");
 }
 
 // --- The actual point of this work: fewer false alarms on fat-tailed data -
@@ -504,6 +525,7 @@ int main() {
     test_student_t_converges_to_gaussian_as_dof_grows();
     test_student_t_threshold_is_always_at_least_as_strict_as_gaussian();
     test_robust_zscore_warmup_then_scores();
+    test_robust_zscore_zero_inflated_history_uses_mean_abs_deviation();
     test_robust_zscore_warmup_clamped_to_window_size();
     test_robust_zscore_does_not_leak_the_current_observation();
     test_robust_zscore_resists_a_single_outlier_that_would_blow_up_ewma();

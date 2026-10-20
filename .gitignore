@@ -29,3 +29,7 @@ Thumbs.db
 # Test scratch files (tests/test_engine.cpp cleans these up itself,
 # but an interrupted run can leave them behind)
 test_tmp_*.csv
+
+# Raw real-data downloads (IEX HIST, Binance) -- large, re-downloadable
+data/raw/
+__pycache__/
