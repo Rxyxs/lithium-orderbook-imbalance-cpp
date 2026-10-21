@@ -43,6 +43,7 @@
 // computationally negligible -- this is not a per-tick hot path.
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <deque>
 #include <optional>
@@ -89,7 +90,26 @@ public:
 
         std::vector<double> deviations(history_.begin(), history_.end());
         const double raw_mad = mad_inplace(deviations, med);
-        const double scale = std::max(raw_mad * kMadToSigma, min_mad_);
+        double scale = raw_mad * kMadToSigma;
+        if (scale < min_mad_) {
+            // More than half the lookback sits on one value (on real tapes: empty
+            // windows, all exactly zero), so the MAD is zero. Dividing by the tiny
+            // min_mad floor then turned a 10-share print into t = 10,000,000 on real
+            // IEX data. Fall back to the mean absolute deviation, as the modified
+            // z-score of Iglewicz & Hoaglin (1993) does; sqrt(pi/2) makes it a
+            // standard-deviation estimate under normality, like kMadToSigma.
+            double sum_abs = 0.0;
+            for (const double v : history_) sum_abs += std::abs(v - med);
+            scale = sum_abs / static_cast<double>(history_.size()) * kMeanAdToSigma;
+        }
+        if (scale < min_mad_) {
+            // Every past window identical: there is no scale to judge against, so the
+            // window is not scored rather than scored against an arbitrary floor.
+            last_median_ = med;
+            last_scale_ = 0.0;
+            push(x);
+            return std::nullopt;
+        }
 
         const double t_stat = (x - med) / scale;
 

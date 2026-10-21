@@ -8,7 +8,7 @@
 ![MSVC](https://img.shields.io/badge/compiler-MSVC-5C2D91)
 ![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Tests](https://img.shields.io/badge/tests-95%2F95_passing-success)
+![Tests](https://img.shields.io/badge/tests-99%2F99_passing-success)
 
 A streaming, zero-dependency C++20 engine that scores order-flow
 imbalance for lithium mining stocks, over 500ms windows, against a
@@ -63,11 +63,13 @@ dependencies** — no CMake, no vcpkg, no third-party libraries. Just
 
 | Metric | Result | What it means |
 |---|---|---|
-| False-alarm reduction, MAD+Student-t vs. Gaussian EWMA | 10 vs. 296 alerts (~30x) | Same 2-hour, 871K-tick dataset -- robust estimator, not more/less sensitive tuning |
+| False-alarm reduction, MAD+Student-t vs. Gaussian EWMA (synthetic) | 10 vs. 296 alerts (~30x) | Same 2-hour, 871K-tick dataset -- robust estimator, not more/less sensitive tuning |
 | False positives outside the injected shock window | **0** across 43,200 windows | Every one of the 10 alerts falls inside the true 5-second shock window |
 | Throughput | ~651,900 ticks/s | Real, measured cost of the robust estimator: ~6% slower than the Gaussian EWMA (~696,000 ticks/s), an honest trade-off disclosed, not hidden |
 | Shock detection margin | Peak statistic 47.37, 7.2x the alert threshold | A materially larger absolute safety margin than the prior Gaussian version |
 | Synthetic fat-tail robustness (unit test) | 37 Gaussian-EWMA alerts vs. 1 robust alert | Same effect reproduced on pure fat-tailed noise with no injected shock at all |
+| **Alert rate on real tapes** (IEX lithium, Binance BTC) | 1.4% to 24.3%, vs. 0.27% nominal | The ~30x advantage does not survive real order flow; see [Real data](#real-data-what-changes-on-real-tapes) |
+| **Lithium news day, 21 Apr 2023** | SQM volume 12x on IEX, buy share 45% vs. 46% | The event shows in volume, not in signed imbalance |
 
 ## Tech stack
 
@@ -232,18 +234,23 @@ alongside the raw delta in the output CSV, for readability only.
 
 ## About the data
 
-There is no free, no-auth source of real tick-level trade data for
-individual equities the way [data.binance.vision](https://data.binance.vision)
-offers free historical crypto trades — real tick/quote data for US or
-ASX-listed stocks requires a paid or authenticated vendor (Polygon.io,
-Databento, LOBSTER, IEX Cloud). `tools/generate_sample_data.cpp`
-generates clearly-synthetic sample data instead: independent
-random-walk mid-prices for SQM, ALB and PLS with Poisson-ish trade
-arrivals (seed 42, fully reproducible), plus one deliberately injected
-order-flow shock — a 5-second burst of ~4x trade arrival rate, 90% buy
-probability and 3x average trade size on SQM — modeling the kind of
-sustained buying pressure a real supply-disruption or demand headline
-produces in lithium names.
+The engine was first built and tuned on synthetic data:
+`tools/generate_sample_data.cpp` generates independent random-walk mid-prices
+for SQM, ALB and PLS with Poisson-ish trade arrivals (seed 42, fully
+reproducible), plus one deliberately injected order-flow shock (a 5-second
+burst of ~4x trade arrival rate, 90% buy probability and 3x average trade
+size on SQM).
+
+It is now also run on two real, free sources (see
+[Real data](#real-data-what-changes-on-real-tapes)):
+
+- **IEX HIST** (https://iextrading.com/trading/market-data/#hist): every trade
+  and quote printed on the IEX exchange, one gzipped pcap per day, no key.
+  `tools/iex_tops_to_ticks.py` streams a 3 GB day and keeps the lithium names
+  (SQM, ALB, LTHM, LAC, PLL, SGML). IEX has no aggressor flag, so each trade
+  is signed with the Lee-Ready rule against IEX's own quote.
+- **Binance aggTrades** (https://data.binance.vision): BTCUSDT trades with
+  the real aggressor flag, converted by `tools/binance_to_ticks.py`.
 
 To use real data, point the engine at any CSV matching the schema
 below; no vendor-specific code is required.
@@ -340,6 +347,62 @@ old EWMA's gradual decay tail (z ≈ 4.8 → 2.7 → ...) — a sliding-window
 median forgets a burst as soon as it's no longer inside the window, while
 an exponential mean re-centers gradually by design.
 
+## Real data: what changes on real tapes
+
+The synthetic results above hold on the data they were built for. Run on real
+tapes, the picture changes, and this section is the comparison.
+`tools/real_data_study.py` reproduces every number here from the engine's own
+output.
+
+**Data.** Two IEX days for the US-listed lithium names: **21 April 2023**, the
+session after Chile announced its national lithium strategy (SQM fell about 18%
+from the previous close), and **13 April 2023**, an ordinary day. Two Binance
+days for BTCUSDT: the **5 August 2024** crash and a calm **11 August 2024**.
+
+| Tape | Empty 500 ms windows | Robust alerts | Gaussian EWMA alerts | 5 s move after a robust alert vs. any traded window |
+|---|---:|---:|---:|---|
+| Synthetic (SQM) | 0% | 0.07% | 0.66% | **90.9 vs. 22.8 bps** |
+| BTCUSDT, crash day | 3% | 9.3% | 3.1% | 4.5 vs. 5.3 bps |
+| BTCUSDT, calm day | 31% | 24.3% | 2.8% | 1.1 vs. 1.2 bps |
+| SQM on IEX, event day | 92% | 4.2% | 2.6% | 3.4 vs. 3.7 bps |
+| SQM on IEX, calm day | 98% | 1.4% | 1.1% | 0.5 vs. 0.5 bps |
+
+Both detectors are calibrated for a 0.27% alert rate. Four findings:
+
+1. **On real tapes the robust detector fires more than the Gaussian one, not
+   30x less.** Real order flow has tails far heavier than a Student-t(4): on the
+   calm BTC day the 99.73% quantile of |t| is in the thousands, not 6.6. The dof=4
+   threshold is an assumption that synthetic data was generated to satisfy and
+   real data does not.
+2. **A bug the synthetic data could never show.** When more than half of the
+   60-window lookback is empty, the median and MAD are both zero and the old code
+   divided by its 1e-6 floor: a 10-share pre-market print on IEX scored t = 10,000,000.
+   The scale now falls back to the mean absolute deviation (as the
+   Iglewicz-Hoaglin modified z-score does) and a perfectly flat history is not
+   scored at all. That halved the IEX alert rate (SQM 8.1% to 4.2%) and left the
+   synthetic result unchanged (10 alerts, all inside the shock).
+3. **Real alerts do not anticipate price.** Only on synthetic data, where the shock
+   was planted, does the price move more after an alert (90.9 vs. 22.8 bps). On
+   every real tape the 5-second move after an alert matches any traded window, and
+   the share of windows where price follows the imbalance is a coin flip.
+4. **The lithium news day was a volume event, not an imbalance event.** On
+   21 April SQM printed 12x its usual volume on IEX (600,610 vs. 48,444 shares),
+   ALB 7x, LTHM 5x, and SQM fell 13% during the session, but the buy share of
+   volume was 45% against 46% on the calm day. The price adjusted through the
+   quotes, not through net aggressive selling; only the last hour leaned to the
+   sell side (28% buys). A signed-volume detector cannot see that day; a volume
+   detector would.
+
+On how good the IEX signing is: the tick rule, the fallback Lee-Ready uses at the
+quote midpoint, matches Binance's true aggressor flag on 94% (crash day) and 97%
+(calm day) of trades. That is an upper bound, since Binance's aggTrades already
+merge fills of one order.
+
+What this means for the engine: on thin equities 500 ms windows are mostly empty
+(92-99% on IEX), so the window should be larger, or measured in trades instead of
+milliseconds. And the alert threshold should be calibrated on each tape's own
+history rather than on an assumed distribution.
+
 ## Build & run (Windows, MSVC)
 
 Requires Visual Studio 2019+ with the C++ build tools (no other
@@ -379,13 +442,13 @@ src/main.cpp                 CLI entry point
 tools/generate_sample_data.cpp  Synthetic sample tick-tape generator
 tools/make_figures.cpp       README figures, emitted as hand-written SVG (no plotting library)
 docs/figures/                Generated SVG figures embedded above
-tests/test_engine.cpp        95 hand-rolled assertions (no test framework)
+tests/test_engine.cpp        99 hand-rolled assertions (no test framework)
 data/                        Sample dataset + example output (gitignored except a small sample)
 ```
 
 ## Tests
 
-95 hand-rolled assertions (no external test framework, consistent with
+99 hand-rolled assertions (no external test framework, consistent with
 the zero-dependency policy), covering CSV parsing (including malformed
 rows), median/MAD correctness (including resistance to a single extreme
 outlier), the Student-t critical-value machinery (checked against

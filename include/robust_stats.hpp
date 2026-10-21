@@ -28,6 +28,8 @@ namespace loi {
 // variance-based one without changing the interpretation of "how many
 // sigma away" a point is.
 inline constexpr double kMadToSigma = 1.4826;
+// sqrt(pi/2): mean absolute deviation -> standard deviation under normality.
+inline constexpr double kMeanAdToSigma = 1.2533141373155003;
 
 // Median of `values` (must be non-empty). Reorders `values` in place
 // (nth_element) -- callers that need the original order preserved must

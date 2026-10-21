@@ -8,7 +8,7 @@
 ![MSVC](https://img.shields.io/badge/compiler-MSVC-5C2D91)
 ![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Tests](https://img.shields.io/badge/tests-95%2F95_passing-success)
+![Tests](https://img.shields.io/badge/tests-99%2F99_passing-success)
 
 Motor C++20 en streaming, sin dependencias externas, que puntúa el
 desbalance del flujo de órdenes para acciones de litio, sobre ventanas
@@ -71,11 +71,13 @@ terceros. Solo `cl.exe` y la librería estándar.
 
 | Métrica | Resultado | Qué significa |
 |---|---|---|
-| Reducción de falsas alarmas, MAD+Student-t vs. EWMA Gaussiano | 10 vs. 296 alertas (~30x) | Mismo dataset de 2 horas y 871K ticks -- estimador robusto, no un ajuste de sensibilidad |
+| Reducción de falsas alarmas, MAD+Student-t vs. EWMA Gaussiano (sintético) | 10 vs. 296 alertas (~30x) | Mismo dataset de 2 horas y 871K ticks -- estimador robusto, no un ajuste de sensibilidad |
 | Falsos positivos fuera de la ventana del shock inyectado | **0** en 43.200 ventanas | Las 10 alertas caen todas dentro de la ventana real de 5 segundos del shock |
 | Throughput | ~651.900 ticks/s | Costo real y medido del estimador robusto: ~6% más lento que el EWMA Gaussiano (~696.000 ticks/s), un trade-off honesto, no escondido |
 | Margen de detección del shock | Estadístico pico 47,37, 7,2x el umbral de alerta | Un margen de seguridad absoluto materialmente mayor que la versión Gaussiana anterior |
 | Robustez a colas pesadas sintéticas (test unitario) | 37 alertas EWMA Gaussiano vs. 1 alerta robusta | Mismo efecto reproducido sobre ruido puro de colas pesadas, sin ningún shock inyectado |
+| **Tasa de alertas en cintas reales** (litio en IEX, BTC en Binance) | 1,4% a 24,3%, vs. 0,27% nominal | La ventaja de ~30x no sobrevive al flujo real; ver [Datos reales](#datos-reales-qué-cambia-en-cintas-reales) |
+| **Día de la noticia del litio, 21 abr 2023** | Volumen de SQM 12x en IEX, fracción compradora 45% vs. 46% | El evento se ve en el volumen, no en el desbalance firmado |
 
 ## Stack tecnológico
 
@@ -254,21 +256,24 @@ legibilidad.
 
 ## Sobre los datos
 
-No existe una fuente gratuita y sin autenticación de datos tick-a-tick
-reales para acciones individuales, a diferencia de
-[data.binance.vision](https://data.binance.vision), que ofrece trades
-históricos de cripto gratis — los datos tick/quote reales para
-acciones listadas en EE.UU. o en la ASX requieren un proveedor pago o
-autenticado (Polygon.io, Databento, LOBSTER, IEX Cloud).
-`tools/generate_sample_data.cpp` genera en su lugar datos de ejemplo
-claramente sintéticos: precios medios de camino aleatorio
-independientes para SQM, ALB y PLS con llegadas de trades tipo
-Poisson (seed 42, totalmente reproducible), más un shock de flujo de
-órdenes inyectado deliberadamente — una ráfaga de 5 segundos con ~4x
-la tasa de llegada de trades, 90% de probabilidad de compra y 3x el
-tamaño promedio de trade en SQM — que modela el tipo de presión
-compradora sostenida que un titular real de disrupción de oferta o de
-demanda produce en acciones de litio.
+El motor se construyó y ajustó primero con datos sintéticos:
+`tools/generate_sample_data.cpp` genera precios medios de camino aleatorio
+independientes para SQM, ALB y PLS con llegadas de trades tipo Poisson (seed 42,
+reproducible), más un shock de flujo de órdenes inyectado a propósito (una
+ráfaga de 5 segundos con ~4x la tasa de trades, 90% de probabilidad de compra y
+3x el tamaño promedio en SQM).
+
+Ahora también corre sobre dos fuentes reales y gratuitas (ver
+[Datos reales](#datos-reales-qué-cambia-en-cintas-reales)):
+
+- **IEX HIST** (https://iextrading.com/trading/market-data/#hist): cada trade y
+  cotización de la bolsa IEX, un pcap comprimido por día, sin clave.
+  `tools/iex_tops_to_ticks.py` procesa en streaming un día de 3 GB y se queda con
+  las acciones de litio (SQM, ALB, LTHM, LAC, PLL, SGML). IEX no marca al
+  agresor, así que cada trade se firma con la regla de Lee-Ready contra la
+  cotización de la propia IEX.
+- **Binance aggTrades** (https://data.binance.vision): trades de BTCUSDT con el
+  agresor real, convertidos por `tools/binance_to_ticks.py`.
 
 Para usar datos reales, basta con apuntar el motor a cualquier CSV que
 respete el esquema de abajo; no se necesita código específico de
@@ -375,6 +380,66 @@ una mediana de ventana deslizante olvida una ráfaga apenas deja de
 estar dentro de la ventana, mientras que una media exponencial se
 re-centra gradualmente por diseño.
 
+## Datos reales: qué cambia en cintas reales
+
+Los resultados sintéticos de arriba se cumplen en los datos para los que se
+construyeron. Sobre cintas reales el panorama cambia, y esta sección es la
+comparación. `tools/real_data_study.py` reproduce cada número desde la salida del
+propio motor.
+
+**Datos.** Dos días de IEX para las acciones de litio listadas en EE.UU.: el
+**21 de abril de 2023**, la sesión siguiente al anuncio de la estrategia nacional
+del litio en Chile (SQM cayó cerca de 18% desde el cierre anterior), y el
+**13 de abril de 2023**, un día normal. Dos días de Binance para BTCUSDT: la caída
+del **5 de agosto de 2024** y un día tranquilo, el **11 de agosto de 2024**.
+
+| Cinta | Ventanas de 500 ms vacías | Alertas robustas | Alertas EWMA gaussiano | Movimiento a 5 s tras una alerta robusta vs. cualquier ventana con trades |
+|---|---:|---:|---:|---|
+| Sintética (SQM) | 0% | 0,07% | 0,66% | **90,9 vs. 22,8 pb** |
+| BTCUSDT, día de caída | 3% | 9,3% | 3,1% | 4,5 vs. 5,3 pb |
+| BTCUSDT, día tranquilo | 31% | 24,3% | 2,8% | 1,1 vs. 1,2 pb |
+| SQM en IEX, día del anuncio | 92% | 4,2% | 2,6% | 3,4 vs. 3,7 pb |
+| SQM en IEX, día normal | 98% | 1,4% | 1,1% | 0,5 vs. 0,5 pb |
+
+Ambos detectores están calibrados para alertar en el 0,27% de las ventanas. Cuatro
+hallazgos:
+
+1. **En cintas reales el detector robusto alerta más que el gaussiano, no 30
+   veces menos.** El flujo real tiene colas mucho más pesadas que una Student-t(4):
+   en el día tranquilo de BTC el cuantil 99,73% de |t| está en los miles, no en 6,6.
+   El umbral con dof=4 es un supuesto que los datos sintéticos cumplían por
+   construcción y los reales no.
+2. **Un error que los datos sintéticos nunca podían mostrar.** Cuando más de la
+   mitad de las 60 ventanas de referencia están vacías, la mediana y el MAD valen
+   cero y el código anterior dividía por su piso de 1e-6: un trade de 10 acciones en
+   el pre-mercado de IEX daba t = 10.000.000. Ahora la escala usa la desviación
+   absoluta media (como el z-score modificado de Iglewicz-Hoaglin) y un historial
+   completamente plano no se puntúa. Eso redujo a la mitad las alertas en IEX (SQM
+   de 8,1% a 4,2%) y dejó igual el resultado sintético (10 alertas, todas dentro
+   del shock).
+3. **Las alertas reales no anticipan el precio.** Solo en los datos sintéticos,
+   donde el shock estaba plantado, el precio se mueve más después de una alerta
+   (90,9 vs. 22,8 pb). En todas las cintas reales el movimiento a 5 segundos tras
+   una alerta es igual al de cualquier ventana con trades, y la proporción de
+   ventanas en que el precio sigue al desbalance es una moneda al aire.
+4. **El día de la noticia del litio fue un evento de volumen, no de desbalance.** El
+   21 de abril SQM transó en IEX 12 veces su volumen normal (600.610 vs. 48.444
+   acciones), ALB 7 veces y LTHM 5 veces, y SQM cayó 13% durante la sesión, pero
+   la fracción compradora del volumen fue 45%, frente a 46% en el día normal. El
+   precio se ajustó a través de las cotizaciones, no por venta agresiva neta; solo
+   la última hora se cargó a la venta (28% de compras). Un detector de volumen
+   firmado no puede ver ese día; uno de volumen sí.
+
+Sobre la calidad de la firma en IEX: la regla del tick, que Lee-Ready usa cuando el
+trade cae justo en el punto medio, coincide con el agresor real de Binance en el
+94% (día de caída) y el 97% (día tranquilo) de los trades. Es una cota superior,
+porque los aggTrades de Binance ya agrupan las ejecuciones de una misma orden.
+
+Qué significa para el motor: en acciones poco líquidas las ventanas de 500 ms
+están casi siempre vacías (92-99% en IEX), así que la ventana debería ser más
+larga o medirse en trades en vez de milisegundos. Y el umbral de alerta debería
+calibrarse con la historia de cada cinta, no con una distribución supuesta.
+
 ## Compilación y ejecución (Windows, MSVC)
 
 Requiere Visual Studio 2019+ con las herramientas de compilación de
@@ -415,13 +480,13 @@ src/main.cpp                 Punto de entrada de la CLI
 tools/generate_sample_data.cpp  Generador de datos de ejemplo sintéticos
 tools/make_figures.cpp       Figuras del README, emitidas como SVG escrito a mano (sin librería de gráficos)
 docs/figures/                Figuras SVG generadas, incrustadas más arriba
-tests/test_engine.cpp        95 asserts escritos a mano (sin framework de tests)
+tests/test_engine.cpp        99 asserts escritos a mano (sin framework de tests)
 data/                        Dataset de ejemplo + salida de ejemplo (ignorado por git salvo una muestra pequeña)
 ```
 
 ## Tests
 
-95 asserts escritos a mano (sin framework de tests externo, consistente
+99 asserts escritos a mano (sin framework de tests externo, consistente
 con la política de cero dependencias), que cubren el parsing de CSV
 (incluyendo filas malformadas), la correctitud de mediana/MAD
 (incluyendo resistencia a un único outlier extremo), la maquinaria de
