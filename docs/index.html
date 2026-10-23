@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>lithium-orderbook-imbalance-cpp</title>
-<meta name="description" content="**[English](README.md) | [Español](README.es.md)**">
+<meta name="description" content="A zero-dependency C++20 order-flow imbalance engine for lithium stocks, tested on synthetic data and on real IEX and Binance tapes, including the session after Chile&#x27;s 2023 lithium">
 <style>
   :root { --bg:#FBFAF8; --surface:#FFF; --ink:#23201D; --muted:#6B645D; --line:#E3DED7; --accent:#B5553D; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
@@ -49,16 +49,16 @@
 <h2>Why MAD + Student-t, not a Gaussian EWMA</h2>
 <figure>
 <img src="figures/student_t_critical_values.svg" alt="Student-t critical value against assumed degrees of freedom" loading="lazy">
-<figcaption>The curve is why the two fixes are separable. Holding the alert rate fixed</figcaption>
+<figcaption>The curve is why the two fixes are separable. Holding the alert rate fixed at the probability a Gaussian 3-sigma rule accepts, the threshold more than doubles once you stop assuming normality — and it keeps climbing as the assumed tail gets heavier. Picking dof=4 is a stated assumption about the tail, not a tuning knob turned until the alert count looked right; the Gaussian limit of 3.00 is the right-hand asymptote of that same curve.</figcaption>
 </figure>
 <h2>Results on synthetic data</h2>
 <figure>
 <img src="figures/alert_counts.svg" alt="Alerts raised by each detector, split into false alarms and true detections" loading="lazy">
-<figcaption>**And &quot;~30x fewer alerts&quot; undersells it, because the two detectors do not</figcaption>
+<figcaption><strong>And &quot;~30x fewer alerts&quot; undersells it, because the two detectors do not even agree on the shock.</strong> Splitting the 296 Gaussian alerts by whether they fall inside the true shock window shows that only <strong>2</strong> of them do: the other <strong>294 are false alarms</strong>, and the detector misses <strong>8 of the 10 shock windows entirely</strong>. The robust detector raises 10 alerts, all 10 inside the shock, none outside. So the robust estimator is not trading sensitivity for fewer false positives — it is better on both axes at once.</figcaption>
 </figure>
 <figure>
 <img src="figures/detector_timeline.svg" alt="Both statistics over the full SQM session" loading="lazy">
-<figcaption>The timeline is the same fact as a picture. The blue Gaussian trace</figcaption>
+<figcaption>The timeline is the same fact as a picture. The blue Gaussian trace crosses its own threshold throughout the session on ordinary fat-tailed noise, while the red robust trace sits well below its line until the shock, then spikes to 47.37 — 7.2x its threshold — and drops back immediately. What a monitoring desk cares about is not the peak height but that the red line is quiet the rest of the time; that is the difference between an alert someone acts on and one they learn to dismiss.</figcaption>
 </figure>
 <h2>Real data: what changes on real tapes</h2>
 <table>
